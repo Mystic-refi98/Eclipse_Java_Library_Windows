@@ -1,0 +1,468 @@
+package form;
+
+import java.awt.BorderLayout;
+
+import java.awt.Component;
+import java.awt.FlowLayout;
+import java.awt.Graphics;
+import java.awt.GridLayout;
+import java.awt.Image;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Vector;
+
+import javax.imageio.ImageIO;
+import javax.swing.JButton;
+import javax.swing.JDesktopPane;
+import javax.swing.JFrame;
+import javax.swing.JInternalFrame;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTable;
+import javax.swing.JTextField;
+import javax.swing.border.EmptyBorder;
+import javax.swing.table.DefaultTableModel;
+
+import helper.Connect;
+import helper.Database;
+import helper.PanelImage;
+
+
+
+public class BorrowBookForm extends JInternalFrame implements ActionListener, MouseListener {
+	Connect connect = new Connect();
+	
+	JTable tableAtas;
+	DefaultTableModel tableModel, tableModel2;
+	JTable tableBawah;
+	Vector<Object> entity, entity2;
+	Vector<Vector<Object>> row, row2;
+	PanelImage panelImage;
+	JTextField bookID, bookAuthor, bookTitle, bookGenre;
+	JButton addTableCart, remove, borrow;
+		
+	public BorrowBookForm(MainForm mf) {
+		addComponent();
+		setTitle("Blue Jack Library || Borrow Book Form ");
+		setSize(800,600);
+		setLocation((mf.getWidth()-this.getWidth())/2,
+				(mf.getHeight()-this.getHeight())/2);
+		setDefaultCloseOperation(DISPOSE_ON_CLOSE);
+		setVisible(true);
+		setClosable(true);
+		setMaximizable(true);
+		// TODO Auto-generated constructor stub
+	}
+	
+		
+		public void add(String bukuID, String bukuTitle, String bukuAuthor, String bukuGenre, int bukuQty, String image){
+			Vector<Object> temp = new Vector<Object>();
+			temp.add(bukuID);
+			temp.add(bukuAuthor);
+			temp.add(bukuTitle);
+			temp.add(bukuGenre);
+			temp.add(bukuQty);
+			temp.add(image);
+			row.add(temp);
+		}
+		
+		
+		void addTableCart(String bookId, String title, String author, String genre, int qty){
+			Vector<Object> temp = new Vector<Object>();
+			temp.add(bookId);
+			temp.add(title);
+			temp.add(author);
+			temp.add(genre);
+			temp.add(qty);
+			row2.add(temp);
+			refreshTableBawah();
+		}
+	
+		public JPanel inittableAtas(){
+			row = new Vector<Vector<Object>>();
+			
+			entity = new Vector<Object>();
+			entity.add("Book ID");
+			entity.add("Book Title");
+			entity.add("Book Author");
+			entity.add("Book Genre");
+			entity.add("Book Stock");
+		
+			tableModel = new DefaultTableModel(row, entity);
+			
+			tableAtas = new JTable(tableModel){
+				
+				public static final long serialVersionUID = 1L;
+
+				@Override
+				public boolean isCellEditable(int row, int column) {
+					return false;
+				}
+			};
+			tableAtas.setFillsViewportHeight(true);
+			tableAtas.getTableHeader().setReorderingAllowed(false);
+			tableAtas.getTableHeader().setResizingAllowed(false);
+			tableAtas.addMouseListener(this);
+			
+			refreshtableAtas();
+			
+			JScrollPane scroll = new JScrollPane(tableAtas);
+			
+			JPanel pnltableAtas = new JPanel(new BorderLayout());
+			pnltableAtas.add(scroll, BorderLayout.CENTER);
+			pnltableAtas.setBorder(new EmptyBorder(0, 10, 0, 10));
+			
+			return pnltableAtas;
+		}
+		
+		public void refreshtableAtas(){
+			
+			ResultSet rs = connect.executeQuery("SELECT * FROM book");
+			try {
+				while(rs.next()){
+					add(rs.getString("BookID"), 				
+							rs.getString("BookAuthor"),
+	   					rs.getString("BookTitle"),
+							rs.getString("BookGenre"),
+							rs.getInt("BookStock"),
+							rs.getString("BookImage"));
+				}
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
+			tableModel = new DefaultTableModel(row, entity){
+				
+				public static final long serialVersionUID = 1L;
+
+				@Override
+				public boolean isCellEditable(int row, int column) {
+					return false;
+				}
+			};
+			tableAtas.setModel(tableModel);
+		}
+		
+		public JPanel iniTableBawah(){
+			row2 = new Vector<Vector<Object>>();
+			
+			entity2 = new Vector<Object>();
+			entity2.add("Book ID");
+			entity2.add("Book Title");
+			entity2.add("Book Author");
+			entity2.add("Book Genre");
+			entity2.add("Quantity");
+		
+			tableModel2 = new DefaultTableModel(row2, entity2);
+			
+			tableBawah = new JTable(tableModel2){
+				
+				public static final long serialVersionUID = 1L;
+
+				@Override
+				public boolean isCellEditable(int row, int column) {
+					return false;
+				}
+			};
+			tableBawah.setFillsViewportHeight(true);
+			tableBawah.getTableHeader().setReorderingAllowed(false);
+			tableBawah.getTableHeader().setResizingAllowed(false);
+			tableBawah.addMouseListener(this);
+			
+			refreshTableBawah();
+			
+			JScrollPane scroll = new JScrollPane(tableBawah);
+			
+			JPanel pnlTableBukuBawah = new JPanel(new BorderLayout());
+			pnlTableBukuBawah.add(scroll, BorderLayout.CENTER);
+			pnlTableBukuBawah.setBorder(new EmptyBorder(0, 10, 0, 10));
+			
+			
+			return pnlTableBukuBawah;
+		}
+		
+		public void refreshTableBawah(){
+			
+			tableModel2 = new DefaultTableModel(row2, entity2){
+				
+				public static final long serialVersionUID = 1L;
+
+				@Override
+				public boolean isCellEditable(int row, int column) {
+					return false;
+				}
+			};
+			tableBawah.setModel(tableModel2);
+		}
+	
+	
+	
+	
+		
+	
+	
+	
+	public JPanel panelMid(){
+	JPanel innerPanel = new JPanel(new GridLayout(1,3));
+	
+	JPanel panelTitle = new JPanel(new GridLayout(4,2));
+	JLabel lblbukuID = new JLabel("Book ID");
+	 bookID = new JTextField();	
+	JLabel lblbukuTitle = new JLabel("Book Title");
+	bookTitle = new JTextField();	
+	JLabel lblbukuAuthor = new JLabel("Book Author");
+	bookAuthor = new JTextField();	
+	JLabel lblbukuGenre = new JLabel("Book Genre");	
+	bookGenre= new JTextField();
+	bookID.setEnabled(false);
+	bookTitle.setEnabled(false);
+	bookAuthor.setEnabled(false);
+	bookGenre.setEnabled(false);
+	
+		panelTitle.add(lblbukuID);
+		panelTitle.add(bookID);
+		panelTitle.add(lblbukuTitle);
+		panelTitle.add(bookTitle);
+		panelTitle.add(lblbukuAuthor);
+		panelTitle.add(bookAuthor);
+		panelTitle.add(lblbukuGenre);
+		panelTitle.add(bookGenre);
+		try {
+			panelImage = new PanelImage(ImageIO.read(new File("assets/no-image.jpg")));
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
+		innerPanel.add(panelImage);
+	innerPanel.add(panelTitle);
+
+	innerPanel.add(iniTableBawah());
+		return innerPanel;
+		
+		
+	}
+	
+	public JPanel panelSouth(){
+		 addTableCart = new JButton("Add to Cart");
+		remove = new JButton("Remove");
+		borrow = new JButton("Borrow");
+		addTableCart.addActionListener(this);
+		remove.addActionListener(this);
+		borrow.addActionListener(this);
+		JPanel panelTitle = new JPanel(new FlowLayout());
+		panelTitle.add(addTableCart);
+		panelTitle.add(remove);
+		panelTitle.add(borrow);
+		return panelTitle;
+	}
+	
+	
+	public void addComponent(){
+		add(inittableAtas(), BorderLayout.NORTH);
+		add(panelMid(), BorderLayout.CENTER);
+		add(panelSouth(), BorderLayout.SOUTH);
+		
+		refreshTableBawah();
+	}
+	
+
+	
+	String chooseTable = "";
+	
+	@Override
+	public void actionPerformed(ActionEvent e) {
+		// TODO Auto-generated method stub
+		if(e.getSource() == addTableCart){
+			if(tableAtas.getSelectedColumn() > -1){
+				if(chooseTable.equals("A")){
+				int qty = Integer.parseInt(tableAtas.getValueAt(tableAtas.getSelectedRow(), 4).toString());
+				if(qty > 0){
+					String bookId = tableAtas.getValueAt(tableAtas.getSelectedRow(), 0).toString();
+					String bookTitle = tableAtas.getValueAt(tableAtas.getSelectedRow(), 1).toString();
+					String bookAuthor = tableAtas.getValueAt(tableAtas.getSelectedRow(), 2).toString();
+					String bookGenre = tableAtas.getValueAt(tableAtas.getSelectedRow(), 3).toString();
+					int quantity = 1;
+					for(Vector<Object> t : row){
+						if(t.elementAt(0).equals(bookId)){
+							System.out.println("masuk");
+							int now = Integer.parseInt(t.elementAt(4).toString());
+							now -= 1;
+							tableAtas.setValueAt(now, tableAtas.getSelectedRow(), 4);
+						}
+					}
+					if(row2.size() == 0){
+						addTableCart(bookId, bookTitle, bookAuthor, bookGenre, quantity);
+					}else{
+						int flag = 0;
+						for(Vector<Object> temp : row2){
+							if(temp.elementAt(0).equals(bookId)){
+								int now = Integer.parseInt(temp.elementAt(4).toString());
+								now += 1;
+								temp.setElementAt(now, 4);
+								flag = 1;
+							}
+						}
+						if(flag == 0){
+							addTableCart(bookId, bookTitle, bookAuthor, bookGenre, quantity);
+						}else{
+							refreshTableBawah();
+						}
+					}
+				}else{
+					JOptionPane.showMessageDialog(this, "Empty Stock");
+				}
+			}
+			}
+		}else if(e.getSource() == remove){
+			if(tableBawah.getSelectedColumn() > -1){
+				if(chooseTable.equals("B")){
+					int qty = Integer.parseInt(tableBawah.getValueAt(tableBawah.getSelectedRow(), 4).toString());
+					String bookId = tableBawah.getValueAt(tableBawah.getSelectedRow(), 0).toString();
+					int qtyCart = 0;
+					for(Vector<Object> t : row2){
+						if(t.elementAt(0).equals(bookId)){
+							qtyCart = Integer.parseInt(t.elementAt(4).toString());
+						}
+					}
+					for(Vector<Object> t : row){
+						if(t.elementAt(0).equals(bookId)){
+							
+							int now = Integer.parseInt(t.elementAt(4).toString());
+							now += qtyCart;
+							int idx = 0;
+							for(int i = 0 ; i < row.size() ; i++){
+								if(row.get(i).elementAt(0).equals(bookId)){
+									idx = i;
+								}
+							}
+							tableAtas.setValueAt(now, idx, 4);
+							
+						}
+					}
+					for(int i = 0 ; i < row2.size() ; i++){
+						if(row2.get(i).elementAt(0).equals(bookId)){
+							System.out.println(row2.get(i).elementAt(0));
+							row2.remove(i);
+						}
+					}
+					refreshTableBawah();
+				}
+			}
+		}else if(e.getSource() == borrow){
+			if(row2.size() == 0){
+				JOptionPane.showMessageDialog(this, "cart empty");
+				return;
+			}
+			String transactionID = "";
+			Connect con = new Connect();
+			ResultSet rs = con.executeQuery("Select * from headertransaction order by BorrowingID");
+			try {
+				if(!rs.next()){
+					transactionID = "BR001";
+				}else{
+					rs.next();
+					int num = Integer.parseInt(rs.getString(1).substring(2));
+					num++;
+					transactionID  = String.format("BR%03d", num);
+				}
+				String userid = Database.UserID;
+				SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+				String date = sdf.format(new Date());
+				String status = "Borrowing";
+				PreparedStatement ph = con.getConnection().prepareStatement("insert into headertransaction values(?,?,?,?)");
+				ph.setString(1, transactionID);
+				ph.setString(2, userid);
+				ph.setString(3, date);
+				ph.setString(4, status);
+				ph.execute();
+				for(Vector<Object> t : row2){
+					PreparedStatement pd = con.getConnection().prepareStatement("insert into detailtransaction values(?,?,?,?)");
+					pd.setString(1, transactionID);
+					pd.setString(2, t.elementAt(0).toString());
+					pd.setString(3, t.elementAt(1).toString());
+					pd.setInt(4, Integer.parseInt(t.elementAt(4).toString()));
+					pd.execute();
+					PreparedStatement pb = con.getConnection().prepareStatement("update book set BookStock = BookStock - ? where BookID = ?");
+					pb.setInt(1, Integer.parseInt(t.elementAt(4).toString()));
+					pb.setString(2, t.elementAt(0).toString());
+					pb.execute();
+				}
+				row.clear();
+				refreshtableAtas();
+				row2.clear();
+				refreshTableBawah();
+				JOptionPane.showMessageDialog(this, "success borrow book");
+			} catch (SQLException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			}
+		}
+	}
+
+	@Override
+	public void mouseClicked(MouseEvent e) {
+		if(e.getSource() == tableAtas){
+			if(tableAtas.getSelectedColumn() > -1){
+				int row = tableAtas.getSelectedRow();
+				bookID.setText(tableAtas.getValueAt(row, 0).toString());
+
+				bookTitle.setText(tableAtas.getValueAt(row, 1).toString());
+
+				bookAuthor.setText(tableAtas.getValueAt(row, 2).toString());
+
+				bookGenre.setText(tableAtas.getValueAt(row, 3).toString());
+				chooseTable = "A";
+			}
+		}else if(e.getSource() == tableBawah){
+			if(tableBawah.getSelectedColumn() > -1){
+				int row = tableBawah.getSelectedRow();
+				bookID.setText(tableBawah.getValueAt(row, 0).toString());
+
+				bookTitle.setText(tableBawah.getValueAt(row, 1).toString());
+
+				bookAuthor.setText(tableBawah.getValueAt(row, 2).toString());
+
+				bookGenre.setText(tableBawah.getValueAt(row, 3).toString());
+				
+				chooseTable = "B";
+			}
+		}
+	}
+
+	@Override
+	public void mouseEntered(MouseEvent e) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void mouseExited(MouseEvent e) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void mousePressed(MouseEvent e) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void mouseReleased(MouseEvent e) {
+		// TODO Auto-generated method stub
+		
+	}
+
+}
