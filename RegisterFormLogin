@@ -1,0 +1,235 @@
+package form;
+import java.util.*;
+import javax.swing.*;
+
+import helper.Connect;
+import helper.Generator;
+
+import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
+import java.sql.*;
+
+public class RegisterForm extends JFrame implements ActionListener{
+
+	Connect connect = new Connect();
+	
+	public RegisterForm() {
+		// TODO Auto-generated constructor stub
+		addComponent();
+		setTitle("RegisterForm");
+		setSize(600,600);
+		setLocationRelativeTo(null);
+		setDefaultCloseOperation(EXIT_ON_CLOSE);
+		setVisible(true);
+	}
+	
+	public JTextField txtusername;
+	public JPasswordField password;
+	public JComboBox<String> year,month,date;
+	public JTextField phone;
+	public JRadioButton m,f;
+	public JCheckBox cb;
+
+	public JPanel panelnorth(){
+		JPanel panel = new JPanel(new FlowLayout());
+		JLabel lbl = new JLabel("Register");
+		panel.add(lbl);
+		return panel;
+	}
+	
+	public JPanel panelcenter(){
+		JPanel panel = new JPanel(new GridLayout(8,2));
+		
+		JLabel lblusername = new JLabel("Username");
+		txtusername = new JTextField();
+		txtusername.addActionListener(this);
+		
+		JLabel lblpassword = new JLabel("Password");
+		password = new JPasswordField();
+		password.addActionListener(this);
+		
+		JLabel lbldob = new JLabel("Day of Birth");
+		Vector<String> vyear,vmonth,vdate;
+		JPanel pnldob = new JPanel(new GridLayout(1,3)); 
+		vyear = new Vector<String>();
+		vyear.add("Year");
+		for(int i=1955;i<=2001;i++){
+			vyear.add(i+"");
+		}
+		
+		vmonth = new Vector<String>();
+		vmonth.add("Month");
+		vmonth.add("Jan");
+		vmonth.add("Feb");
+		vmonth.add("Mar");
+		vmonth.add("Apr");
+		vmonth.add("May");
+		vmonth.add("Jun");
+		vmonth.add("Jul");
+		vmonth.add("Aug");
+		vmonth.add("Sep");
+		vmonth.add("Oct");
+		vmonth.add("Nov");
+		vmonth.add("Dec");
+
+		
+		vdate = new Vector<String>();
+		vdate.add("Date");
+		for(int i=1;i<=31;i++){
+			vdate.add(i+"");
+		}
+		year = new JComboBox<String>(vyear);
+		month = new JComboBox<String>(vmonth);
+		date = new JComboBox<String>(vdate); 
+		
+		pnldob.add(year);
+		pnldob.add(month);
+		pnldob.add(date);
+		
+		JLabel lblphone = new JLabel("Phone");
+		phone = new JTextField();
+		phone.addActionListener(this);
+		
+		JLabel lblgender = new JLabel("Gender");
+		m = new JRadioButton("Male");
+		f = new JRadioButton("Female");
+		JPanel pnlgender = new JPanel(new GridLayout(1,2));
+
+		pnlgender.add(f);
+		pnlgender.add(m);
+		
+		JPanel pnlcb = new JPanel(new GridLayout());
+		cb = new JCheckBox("Agree to be New Member");
+		cb.addActionListener(this);
+		pnlcb.add(cb);
+		
+		panel.add(lblusername);
+		panel.add(txtusername);
+		panel.add(lblpassword);
+		panel.add(password);
+		panel.add(lbldob);
+		panel.add(pnldob);
+		panel.add(lblphone);
+		panel.add(phone);
+		panel.add(lblgender);
+		panel.add(pnlgender);
+		panel.add(pnlcb);
+		return panel;
+	}
+	
+	public JButton submit;
+	public JButton cancel;
+	
+	public JPanel panelsouth(){
+		JPanel panel = new JPanel(new FlowLayout());
+		submit = new JButton("Submit");
+		submit.addActionListener(this);
+		cancel = new JButton("Cancel");
+		cancel.addActionListener(this);
+		
+		panel.add(submit);
+		panel.add(cancel);
+		return panel;
+	}
+	
+	public void addComponent(){
+		add(panelnorth(),BorderLayout.NORTH);
+		add(panelcenter(),BorderLayout.CENTER);
+		add(panelsouth(),BorderLayout.SOUTH);
+	}
+	
+	@Override
+	public void actionPerformed(ActionEvent e) {
+		// TODO Auto-generated method stub
+		if(e.getSource()==submit){
+			if(txtusername.getText().equals("")&&password.getText().equals("")&& phone.getText().equals("")){
+				JOptionPane.showMessageDialog(this,"All Field must be filled");
+			}else if(txtusername.getText().equals("")||txtusername.getText().length()<5 || txtusername.getText().length()>12){
+					JOptionPane.showMessageDialog(this,"Username length must between 5 and 12 Characters");
+			}else if(password.getText().equals("")||password.getText().length()<5 || password.getText().length()>12){
+				JOptionPane.showMessageDialog(this,"Password length must between 5 and 12 Characters");
+			}else if(year.getSelectedIndex()==0|| month.getSelectedIndex()==0 || date.getSelectedIndex()==0){
+				JOptionPane.showMessageDialog(this,"Date of Birth must be choosen");
+			}else if(phone.getText().equals("")||phone.getText().length()>12){
+				JOptionPane.showMessageDialog(this,"Phone must be numeric and more than 12 digits");
+			}else if(!m.isSelected() && !f.isSelected()){
+				JOptionPane.showMessageDialog(this,"Gender must be choosen");
+			}else if(!cb.isSelected()){
+				JOptionPane.showMessageDialog(this,"Agreement must be checked");
+			}else{
+				if(month.getSelectedIndex()==1){
+					month.equals("1");
+				}else if(month.getSelectedIndex()==2){
+					month.equals("2");
+				}else if(month.getSelectedIndex()==3){
+					month.equals("3");
+				}else if(month.getSelectedIndex()==4){
+					month.equals("4");
+				}else if(month.getSelectedIndex()==5){
+					month.equals("5");
+				}else if(month.getSelectedIndex()==6){
+					month.equals("6");
+				}else if(month.getSelectedIndex()==7){
+					month.equals("7");
+				}else if(month.getSelectedIndex()==8){
+					month.equals("8");
+				}else if(month.getSelectedIndex()==9){
+					month.equals("9");
+				}else if(month.getSelectedIndex()==10){
+					month.equals("10");
+				}else if(month.getSelectedIndex()==11){
+					month.equals("11");
+				}else if(month.getSelectedIndex()==12){
+					month.equals("12");
+				}
+				
+				String username = txtusername.getText();
+				String txtpassword = password.getText();
+				String txtdate = year.getSelectedItem()+"-"+
+								month.getSelectedIndex()+"-"+
+								date.getSelectedItem();
+				String txtPhone = phone.getText();
+				String txtGender="";
+				
+				if(m.isSelected())txtGender="Male";
+				else txtGender="Female";
+				String role ="User";
+				Generator g= new Generator();
+				String userId = g.generate("Select * From user","US");
+				String query ="INSERT INTO user VALUES(?,?,?,?,?,?,?)";
+				
+				try{
+					PreparedStatement ps = connect.con.prepareStatement(query);
+					ps.setString(1, userId);
+					ps.setString(2, username);
+					ps.setString(3, txtpassword);
+					ps.setString(4, txtdate);
+					ps.setString(5, txtGender);
+					ps.setString(6, txtPhone);
+					ps.setString(7, role);
+					ps.execute();
+					
+					System.out.println("INI MASUK DB");
+					
+				}catch(SQLException e1){
+					e1.printStackTrace();
+				}
+				
+				JOptionPane.showMessageDialog(this, "Success register");
+				dispose();
+				new LoginForm();
+			}
+				
+			
+		
+	}else if(e.getSource()==cancel){
+		new LoginForm();
+		dispose();
+	}
+		
+
+	}
+}
