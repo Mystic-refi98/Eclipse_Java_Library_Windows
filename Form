@@ -1,0 +1,155 @@
+package form;
+
+import javax.swing.*;
+
+import helper.Connect;
+import helper.Database;
+
+import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+
+
+public class LoginForm extends JFrame implements ActionListener,MouseListener{
+
+	Connect connect = new Connect();
+	
+	public LoginForm() {
+		
+		addComponent();
+		
+		setTitle("Login");
+		setSize(400,300);
+		setLocationRelativeTo(null);
+		setDefaultCloseOperation(EXIT_ON_CLOSE);
+		setVisible(true);
+			
+	}
+	
+	public JPanel panelnorth(){
+		JLabel lbltitle = new JLabel("Login");
+		JPanel pnltitle = new JPanel(new FlowLayout());
+		pnltitle.add(lbltitle);
+		return pnltitle;
+	}
+	
+	public JTextField textusername;
+	
+	public JPasswordField password;
+	
+	public JPanel panelcenter(){
+		JLabel lbl1 = new JLabel("Username");
+		JLabel lbl2 = new JLabel("Password");
+		textusername = new JTextField();
+		password = new JPasswordField();
+		textusername.addActionListener(this);
+		password.addActionListener(this);
+		JPanel pnlform = new JPanel(new GridLayout(2,2));
+		
+		pnlform.add(lbl1);
+		pnlform.add(textusername);
+		pnlform.add(lbl2);
+		pnlform.add(password);
+		return pnlform;
+	}
+	
+	public JButton btnlogin;
+	public JLabel daftar;
+	
+	public JPanel panelsouth(){
+		
+		btnlogin= new JButton("Login");
+		btnlogin.addActionListener(this);
+		JPanel pnl1 = new JPanel(new FlowLayout());
+		JPanel pnl2 = new JPanel(new FlowLayout());
+		JLabel lbl1 = new JLabel("Not a Member?");
+		daftar = new JLabel("<html><u><font color=\"blue\">Sign Up Now</font></u></html>");
+		daftar.addMouseListener(this);
+		pnl1.add(btnlogin);
+		pnl2.add(lbl1);
+		pnl2.add(daftar);
+		JPanel pnl = new JPanel(new GridLayout(2,1));
+		pnl.add(pnl1);
+		pnl.add(pnl2);
+		
+		return pnl;
+	}
+	
+	public void addComponent(){
+		add(panelnorth(),BorderLayout.NORTH);
+		add(panelcenter(),BorderLayout.CENTER);
+		add(panelsouth(),BorderLayout.SOUTH);
+	}
+	
+	RegisterForm rf;
+	
+	public void actionPerformed(ActionEvent e) {
+		if(e.getSource()==btnlogin){
+			
+			String username=textusername.getText();
+			String txtpassword = password.getText();
+			String query =
+					"SELECT * From user WHERE UserName ='"+username+"' and UserPass= '"+txtpassword+"'";
+			ResultSet rs = connect.executeQuery(query);
+			try{
+				if(rs.next()){
+					Database.UserID=rs.getString("UserID");
+					Database.Role=rs.getString("Role");
+					new MainForm();
+					dispose();
+				}else{
+					JOptionPane.showMessageDialog(this,"Invalid username or password");
+				}
+			}catch(SQLException e1){
+				e1.printStackTrace();
+			}
+			
+			if(textusername.getText().equals("")&&password.getText().equals("")){
+				JOptionPane.showMessageDialog(this,"Username & Password must be filled");
+			}else if(password.getText().equals("")){
+				JOptionPane.showMessageDialog(this,"Password must be filled");
+			}else if(textusername.getText().equals("")){
+				JOptionPane.showMessageDialog(this,"Username must be filled");
+			}
+		}
+
+	}
+
+	@Override
+	public void mouseClicked(MouseEvent e) {
+		// TODO Auto-generated method stub
+		if(e.getSource()==daftar){
+			new RegisterForm();
+			dispose();
+		}
+	}
+
+	@Override
+	public void mouseEntered(MouseEvent e) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void mouseExited(MouseEvent e) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void mousePressed(MouseEvent e) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void mouseReleased(MouseEvent arg0) {
+		// TODO Auto-generated method stub
+		
+	}
+
+}
