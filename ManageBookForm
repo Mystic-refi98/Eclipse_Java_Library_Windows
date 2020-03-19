@@ -1,0 +1,539 @@
+package form;
+
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.FlowLayout;
+import java.awt.GridLayout;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
+import java.io.File;
+import java.io.IOException;
+import java.util.Vector;
+
+import javax.imageio.ImageIO;
+import javax.swing.JButton;
+import javax.swing.JComboBox;
+import javax.swing.JFileChooser;
+import javax.swing.JInternalFrame;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JSpinner;
+import javax.swing.JTable;
+import javax.swing.JTextField;
+import javax.swing.border.EmptyBorder;
+import javax.swing.table.DefaultTableModel;
+
+
+import java.sql.*;
+import helper.*;
+
+public class ManageBookForm extends JInternalFrame implements ActionListener,MouseListener {
+
+	Connect connect = new Connect();
+	public ManageBookForm(MainForm mf){
+		
+		add(addComponent());
+		setTitle("Blue Jack Library || Manage Book Form ");
+		setSize(800,600);
+		setLocation((mf.getWidth()-this.getWidth())/2,
+				(mf.getHeight()-this.getHeight())/2);
+		setDefaultCloseOperation(DISPOSE_ON_CLOSE);
+		setVisible(true);
+		setClosable(true);
+		setMaximizable(true);
+		refreshTable();
+	}
+	
+	DefaultTableModel tabelModel;
+	JComboBox<String>vGenre;
+	JTable table;
+	JScrollPane scrollpane;
+	Vector<Object>headers;
+	Vector<Vector<Object>> baris;
+	String action;
+	
+	public void List(String vid , String vtitle , String vauthor, String vgenre, int vstock, String picture){
+		Vector<Object> vobj = new Vector<>(); 
+		vobj.add(vid);
+		vobj.add(vtitle);
+		vobj.add(vauthor);
+		vobj.add(vgenre);
+		vobj.add(vstock);
+		vobj.add(picture);
+		baris.add(vobj);
+	}
+	
+
+	
+	public JPanel Table(){
+		baris = new Vector<>();
+		
+		headers = new Vector<Object>();
+		headers.add("Book ID");
+		headers.add("Book Title");
+		headers.add("Book Author");
+		headers.add("Book Genre");
+		headers.add("Book Stock");
+		headers.add("Image");
+		
+
+		
+		tabelModel = new DefaultTableModel(baris, headers);
+		
+		table = new JTable(tabelModel){
+			/**
+			 * 
+			 */
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			public boolean isCellEditable(int row, int column) {
+				return false;
+			}
+		};
+		table.setFillsViewportHeight(true);
+		table.getTableHeader().setReorderingAllowed(false);
+		table.getTableHeader().setResizingAllowed(false);
+		table.addMouseListener(this);
+		
+		refreshTable();
+		
+		JScrollPane scroll = new JScrollPane(table);
+		
+		JPanel pnlTable = new JPanel(new BorderLayout());
+		pnlTable.add(scroll, BorderLayout.CENTER);
+	
+		
+		return pnlTable;
+	}
+	
+	JTextField bookId,bookTitle,bookAuthor,bookImg;
+	JSpinner bookQty;
+	JButton bInsert,bUpdate,bDelete,bSave,bCancel,bChoose;
+	PanelImage pnlImg;
+	JComboBox<String> cGenre;
+	
+	public JPanel Form(){
+		bookId = new JTextField();
+		bookId.setEnabled(false);
+		bookTitle = new JTextField();
+		bookTitle.setEnabled(false);
+		bookAuthor = new JTextField();
+		bookAuthor.setEnabled(false);
+		Vector<String>vGenre;
+		vGenre = new Vector<String>();
+		vGenre.add("Genre");
+		vGenre.add("Action");
+		vGenre.add("Adventure");
+		cGenre = new JComboBox<String>(vGenre);
+		
+		JPanel pnlGenre = new JPanel(new GridLayout(1,1));
+		pnlGenre.add(cGenre);
+		
+		cGenre.setEnabled(false);
+		bookImg = new JTextField();
+		bookImg.setEnabled(false);
+		bookQty = new JSpinner();
+		bookQty.setEnabled(false);
+		
+		JPanel panelform = new JPanel(new GridLayout(6,2,9,9));
+		panelform.add(new JLabel("Book ID"));
+		panelform.add(bookId);
+		panelform.add(new JLabel("Book Title"));
+		panelform.add(bookTitle);
+		panelform.add(new JLabel("Book Author"));
+		panelform.add(bookAuthor);
+		panelform.add(new JLabel("Book Genre"));
+		panelform.add(pnlGenre);
+		panelform.add(new JLabel("Book Quantity"));
+		panelform.add(bookQty);
+		panelform.add(new JLabel("Book Image"));
+		
+
+		
+		
+		JPanel panelbChoose = new JPanel (new GridLayout(1,2));
+		bChoose = new JButton("Choose");
+		bChoose.setEnabled(false);
+		bChoose.addActionListener(this);
+		panelbChoose.add(bookImg);
+		panelbChoose.add(bChoose);
+		panelform.add(panelbChoose);
+		
+		try{
+		pnlImg = new PanelImage(ImageIO.read(new File("assets/no-image.jpg")));
+		}catch(IOException e){
+			e.printStackTrace();
+		}
+		
+		JPanel panelGabung= new JPanel(new GridLayout(1,2));
+		panelGabung.add(panelform);
+		panelGabung.add(pnlImg);
+		
+		JPanel panelMix = new JPanel(new BorderLayout());
+		
+		panelMix.add(pnlImg,BorderLayout.CENTER);
+		panelMix.add(Button(),BorderLayout.EAST);
+		panelGabung.add(panelform);
+		panelGabung.add(panelMix);
+		
+		return panelGabung;
+	}
+	
+	
+	public JPanel Button(){
+		bInsert = new JButton("Insert");
+		bUpdate = new JButton("Update");
+		
+		bDelete = new JButton("Delete");
+		
+		bSave = new JButton("Submit");
+		bSave.setEnabled(false);
+		bCancel = new JButton("Cancel");
+		bCancel.setEnabled(false);
+		
+		JPanel panelButton = new JPanel(new GridLayout(5,1));
+		panelButton.add(bInsert);
+		bInsert.addActionListener(this);
+		panelButton.add(bUpdate);
+		bUpdate.addActionListener(this);
+		panelButton.add(bDelete);
+		bDelete.addActionListener(this);
+		panelButton.add(bSave);
+		bSave.addActionListener(this);
+		panelButton.add(bCancel);
+		bCancel.addActionListener(this);
+		
+		
+		
+		
+		
+		return panelButton;
+	}
+
+	
+	public JPanel addComponent(){
+		JPanel panelGabungan = new JPanel(new BorderLayout());
+		panelGabungan.add(Form(),BorderLayout.CENTER);
+		
+		
+		JPanel panelFix = new JPanel(new GridLayout(2,1));
+		panelFix.add(Table());
+		panelFix.add(panelGabungan);
+		
+		return panelFix;
+		
+		
+	}
+	
+	public void setDefault(){
+		bookQty.setValue(0);
+		bookImg.setText("");
+		bookId.setEnabled(false);
+		bookTitle.setEnabled(false);
+		bookAuthor.setEnabled(false);
+		cGenre.setEnabled(false);
+		bookQty.setEnabled(false);
+		bookImg.setEnabled(false);
+		bChoose.setEnabled(false);
+		bInsert.setEnabled(true);
+		bUpdate.setEnabled(true);
+		bDelete.setEnabled(true);
+		bSave.setEnabled(false);
+		bCancel.setEnabled(false);
+		try {
+			pnlImg.setImage(ImageIO.read(new File("assets/no-image.jpg")));
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+	
+	private void refreshTable(){
+
+		baris.clear();
+		ResultSet rs = connect.executeQuery("SELECT * FROM book");
+		try{
+			while(rs.next()){
+				List(rs.getString("BookID"),
+						rs.getString("BookTitle"),
+						rs.getString("BookAuthor"), rs.getString("BookGenre"),
+						rs.getInt("BookStock"),rs.getString("BookImage"));
+			}
+		}catch(Exception e){
+			e.printStackTrace();
+		}
+		
+		tabelModel = new DefaultTableModel(baris,headers){
+			public boolean isCellEditable(int row,int column){
+				return false;
+			}
+		};
+		table.setModel(tabelModel);
+	}
+	
+	public void add(String id, String name, int qty, String picture){
+		Vector<Object> temp = new Vector<Object>();
+		temp.add(id);
+		temp.add(name);
+		temp.add(qty);
+		temp.add(picture);
+		baris.add(temp);
+	}
+	
+	private String generateId(){
+		String id = "";
+		//do generate next item id
+		
+		ResultSet rs = connect.executeQuery("SELECT*FROM book");
+		try{
+			if(!rs.next()){
+				id="BK001";
+			}else{
+				rs.last();
+				String lastId = rs.getString("BookID");
+				int number =Integer.parseInt(lastId.substring(2,5));
+				number++;
+				id=String.format("BK%03d",number);
+			}
+		}catch(Exception e){
+			e.printStackTrace();
+		}
+		
+		return id;
+		
+		
+	}
+
+	@Override
+	public void actionPerformed(ActionEvent e) {
+		// TODO Auto-generated method stub
+		if(e.getSource()==bInsert){
+		setDefault();
+		bookId.setText(generateId());
+		bInsert.setEnabled(false);
+		bUpdate.setEnabled(false);
+		bDelete.setEnabled(false);
+		bSave.setEnabled(true);
+		bCancel.setEnabled(true);
+		bookId.setEnabled(true);
+		bookTitle.setEnabled(true);
+		bookAuthor.setEnabled(true);
+		cGenre.setEnabled(true);
+		bookImg.setEnabled(true);
+		bChoose.setEnabled(true);
+		bookQty.setEnabled(true);
+		action = "Insert";
+		
+		}else if(e.getSource()==bChoose){
+			JFileChooser pilihan = new JFileChooser();
+			int hasil = pilihan.showOpenDialog(this);
+			if(hasil == pilihan.APPROVE_OPTION){
+				File file = pilihan.getSelectedFile();
+				
+				
+				if(!pnlImg.getName().endsWith(".jpg") && !pnlImg.getName().endsWith(".png")){
+					JOptionPane.showMessageDialog(this, "Image extension must be '.jpg' or '.png'");
+					
+				}else{
+				bookImg.setText(file.getName());
+				
+				try {
+					pnlImg.setImage(ImageIO.read(new File("assets/"+file.getName())));
+				} catch (IOException x) {
+					// TODO Auto-generated catch block
+					x.printStackTrace();
+				}
+				}
+			}
+		}else if(e.getSource()==bCancel){
+			setDefault();
+		}else if(e.getSource()==bUpdate){
+			if(table.getSelectedColumn() > -1){
+			if(e.getSource()==table){
+				int baris = table.getSelectedRow();
+				bookId.setText(table.getValueAt(baris, 0).toString());
+				bookTitle.setText(table.getValueAt(baris, 1).toString());
+				bookAuthor.setText(table.getValueAt(baris, 2).toString());
+				bookQty.setValue(table.getValueAt(baris, 4));
+				bookImg.setText(table.getValueAt(baris, 5).toString());	
+			}
+			bookId.setEnabled(true);
+			bookTitle.setEnabled(true);
+			bookAuthor.setEnabled(true);
+			cGenre.setEnabled(true);
+			bookQty.setEnabled(true);
+			bookImg.setEnabled(true);
+			
+			bSave.setEnabled(true);
+			bCancel.setEnabled(true);
+			bChoose.setEnabled(true);
+			
+			bInsert.setEnabled(false);
+			bUpdate.setEnabled(false);
+			bDelete.setEnabled(false);
+			action = "Update";
+			}
+			
+		}else if(e.getSource()==bDelete){
+			
+			
+			if(e.getSource()==table){
+				int baris = table.getSelectedRow();
+				bookId.setText(table.getValueAt(baris, 0).toString());
+				bookTitle.setText(table.getValueAt(baris, 1).toString());
+				bookAuthor.setText(table.getValueAt(baris, 2).toString());
+				bookQty.setValue(table.getValueAt(baris, 4));
+				bookImg.setText(table.getValueAt(baris, 5).toString());	
+	
+			}
+			
+			bInsert.setEnabled(true);
+			bUpdate.setEnabled(true);
+			bDelete.setEnabled(true);
+			bSave.setEnabled(false);
+			bCancel.setEnabled(true);
+			
+			if(table.getSelectedColumn() > -1){
+				int hasil = JOptionPane.showConfirmDialog(this,"Are you sure?","Delete",JOptionPane.YES_NO_OPTION);
+				if(hasil==JOptionPane.YES_OPTION){
+					String query = "DELETE FROM book WHERE BookID=?";
+					
+					try{
+						PreparedStatement ps = connect.con.prepareStatement(query);
+						ps.setString(1,bookId.getText() );
+						ps.execute();
+						setDefault();
+						refreshTable();
+
+						JOptionPane.showMessageDialog(this,"Delete Book Success");
+					}catch(Exception e1){
+						e1.printStackTrace();
+					}
+					
+				}
+				
+			}
+			
+			
+			
+			
+			
+			
+		}else if(e.getSource()==bSave){
+		
+			if(bookId.getText().equals("")){
+				JOptionPane.showMessageDialog(this, "Book Id must be filled");
+			}else if(bookTitle.getText().equals("")){
+				JOptionPane.showMessageDialog(this, "Book Title must be filled");
+			}else if(bookTitle.getText().length() < 5 || bookTitle.getText().length() < 35){
+				JOptionPane.showMessageDialog(this,"Title length must between 5 - 35 characters");
+			}else if(bookAuthor.getText().equals("")){
+				JOptionPane.showMessageDialog(this, "Book Author must be filled");
+			}else if(bookAuthor.getText().length()<5 || bookAuthor.getText().length()>20 ){
+				JOptionPane.showConfirmDialog(this,"Author length must between 5 -20 Chracters");
+			}else if(cGenre.getSelectedIndex() == 0){
+				JOptionPane.showMessageDialog(this, "Book Genre must be selected");
+			}else if(Integer.parseInt(bookQty.getValue().toString())<=0){
+				JOptionPane.showMessageDialog(this, "Book Qty must be more than 0");
+			}else if(bookImg.getText().equals("")){
+				JOptionPane.showMessageDialog(this, "Book Img must be exist");
+			}else{
+				if(action.equals("Insert")){
+					try{
+						String query = "INSERT INTO book VALUES(?,?,?,?,?,?)";
+						PreparedStatement ps = connect.con.prepareStatement(query);
+						ps.setString(1,bookId.getText() );
+						ps.setString(2, bookTitle.getText());
+						ps.setString(3, bookAuthor.getText());
+						ps.setString(4, cGenre.getSelectedItem().toString());
+						ps.setInt(5, Integer.parseInt(bookQty.getValue().toString()));
+						ps.setString(6, bookImg.getText());
+						ps.execute();
+						
+					}catch(Exception e1){
+						e1.printStackTrace();
+					}
+					JOptionPane.showMessageDialog(this, "Success insert new item");
+					setDefault();
+					refreshTable();
+					
+				}else if(action.equals("Update")){
+					String query = "UPDATE book SET BookTitle=?,BookAuthor=?,BookGenre=?,BookStock=?,BookImage=? WHERE BookID=?";
+					
+					try{
+						PreparedStatement ps =  connect.con.prepareStatement(query);
+						
+						ps.setString(1,bookTitle.getText() );
+						ps.setString(2, bookAuthor.getText());
+						ps.setString(3, cGenre.getSelectedItem().toString());
+						ps.setInt(4, Integer.parseInt(bookQty.getValue().toString()));
+						ps.setString(5, bookImg.getText());
+						ps.setString(6,bookId.getText() );
+						ps.execute();
+						
+						
+					}catch(Exception e1){
+						e1.printStackTrace();
+					}
+					JOptionPane.showMessageDialog(this, "Success update item");
+					setDefault();
+					refreshTable();
+					
+				}
+			}
+		}
+		
+	}
+	
+	public int getIndex(String genre){
+		if(genre.equals("Action")) return 1;
+		if(genre.equals("Adventure")) return 2;
+		return 0;
+	}
+
+	@Override
+	public void mouseClicked(MouseEvent e) {
+		// TODO Auto-generated method stub
+		if(e.getSource()==table){
+			if(table.getSelectedColumn() > -1){
+			int baris = table.getSelectedRow();
+			bookId.setText(table.getValueAt(baris, 0).toString());
+			bookTitle.setText(table.getValueAt(baris, 1).toString());
+			bookAuthor.setText(table.getValueAt(baris, 2).toString());
+			cGenre.setSelectedItem(getIndex(table.getValueAt(baris, 3).toString()));
+			bookQty.setValue(table.getValueAt(baris, 4));
+			bookImg.setText(table.getValueAt(baris, 5).toString());
+			
+			}
+			
+		}
+	}
+
+	@Override
+	public void mouseEntered(MouseEvent e) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void mouseExited(MouseEvent e) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void mousePressed(MouseEvent e) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void mouseReleased(MouseEvent e) {
+		// TODO Auto-generated method stub
+		
+	}
+}
