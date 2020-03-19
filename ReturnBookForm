@@ -1,0 +1,206 @@
+package form;
+
+import java.awt.BorderLayout;
+import java.awt.FlowLayout;
+import java.awt.GridLayout;
+import java.awt.event.*;
+import java.sql.ResultSet;
+import java.util.Vector;
+import java.util.*;
+import javax.swing.*;
+import javax.swing.table.DefaultTableModel;
+
+import helper.Connect;
+
+public class ReturnBookForm extends JInternalFrame implements ActionListener,MouseListener{
+
+	public ReturnBookForm(MainForm mf){
+		add(finalPanel());
+		setTitle("Blue Jack Library || Return Book Form");
+		setSize(800,600);
+		setLocation((mf.getWidth()-this.getWidth())/2,
+				(mf.getHeight()-this.getHeight())/2);
+		setDefaultCloseOperation(DISPOSE_ON_CLOSE);
+		setVisible(true);
+		setClosable(true);
+		setMaximizable(true);
+	}
+
+	DefaultTableModel tabelModel,modelBawah;
+	JTable table, tableBawah;
+	JScrollPane scrollpane,sp;
+	Vector<Object> headers, headers2;
+	Vector<Vector<Object>> baris,barisB;
+
+	public void List(String borrowId , String borrowDate , String borrowStatus){
+		Vector<Object> vobj = new Vector<>();
+		vobj.add(borrowId);
+		vobj.add(borrowDate);
+		vobj.add(borrowStatus);
+
+		baris.add(vobj);
+	}
+
+	public JPanel Table(){
+		baris = new Vector<>();
+		
+		Connect c = new Connect();
+		ResultSet rs = c.executeQuery("select * from headertransaction");
+		try{
+		while(rs.next()){
+			Vector<Object> t= new Vector<>();
+			t.add(rs.getString(1));
+			t.add(rs.getString(2));
+			t.add(rs.getString(3));
+			baris.add(t);
+		}
+		}catch (Exception e) {
+			// TODO: handle exception
+		}
+		headers = new Vector<Object>();
+		headers.add("Borrow ID");
+		headers.add("Borrow Date");
+		headers.add("Borrow Status");
+
+		tabelModel = new DefaultTableModel(baris,headers){
+			
+			
+			
+			public boolean isCellEditable(int row, int column) {
+				// TODO Auto-generated method stub
+				return false;
+
+			}
+
+	};
+	table = new JTable(tabelModel);
+	scrollpane =new JScrollPane(table);
+	JPanel pnlTbl = new JPanel(new BorderLayout());
+	pnlTbl.add(scrollpane, BorderLayout.CENTER);
+	return pnlTbl;
+	}
+
+	
+	
+	public void ListB(String borrowId , String bookId , String bookTitle,String qty){
+		Vector<Object> vobjBawah = new Vector<>();
+		vobjBawah.add(borrowId);
+		vobjBawah.add(bookId);
+		vobjBawah.add(bookTitle);
+		vobjBawah.add(qty);
+
+		barisB.add(vobjBawah);
+	}
+
+	public JPanel TableBawah(){
+
+		barisB = new Vector<>();
+
+		headers2 = new Vector<Object>();
+		headers2.add("Borrow ID");
+		headers2.add("Book ID");
+		headers2.add("Book Title");
+		headers2.add("Qty");
+		
+		modelBawah = new DefaultTableModel(barisB,headers2){
+			public boolean isCellEditable(int row, int column) {
+				// TODO Auto-generated method stub
+				return false;
+
+			}
+
+	};
+	tableBawah = new JTable(modelBawah);
+	sp =new JScrollPane(tableBawah);
+	JPanel pnlTblB = new JPanel(new BorderLayout());
+	pnlTblB.add(sp, BorderLayout.CENTER);
+	return pnlTblB;
+	}
+
+
+
+
+	JButton kembali;
+
+
+
+	public JPanel panelsouth(){
+		JPanel pnl = new JPanel(new FlowLayout());
+		kembali = new JButton("Return");
+		kembali.addActionListener(this);
+		pnl.add(kembali);
+
+		return pnl;
+	}
+
+	public JPanel addComponent(){
+		JPanel panelGabungan = new JPanel(new BorderLayout());
+
+
+		panelGabungan.add(TableBawah(),BorderLayout.CENTER);
+		panelGabungan.add(panelsouth(),BorderLayout.SOUTH);
+
+
+
+		return panelGabungan;
+
+	}
+
+	public JPanel finalPanel(){
+		JPanel pnl = new JPanel(new GridLayout(2,1));
+		pnl.add(Table());
+
+		pnl.add(addComponent());
+
+		return pnl;
+
+	}
+
+	@Override
+	public void actionPerformed(ActionEvent e) {
+		if(e.getSource()==kembali){
+			JOptionPane.showMessageDialog(this,"Are you sure Remove this book?");
+		}
+	}
+
+	@Override
+	public void mouseClicked(MouseEvent e) {
+		// TODO Auto-generated method stub
+		if(e.getSource()==table){
+			
+			if(table.getSelectedColumn() > -1){
+			
+				
+			}
+		}
+		
+	}
+
+	@Override
+	public void mouseEntered(MouseEvent e) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void mouseExited(MouseEvent e) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void mousePressed(MouseEvent e) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void mouseReleased(MouseEvent e) {
+		// TODO Auto-generated method stub
+		
+	}
+
+
+
+
+}
